@@ -1,31 +1,39 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 import { Symfoni } from "./hardhat/SymfoniContext";
 import { Greeter } from './components/Greeter';
+import {Header} from "./container/Header";
+import {Route, Switch} from "react-router-dom";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import {PAGES} from "./pages";
+
+import RegisterEstate from "./container/management/RegisterEstate";
+
+import {ToastContainer} from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+import UserRegister from "./container/signup";
+
 
 function App() {
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <Symfoni autoInit={true} >
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-        </a>
-          <Greeter></Greeter>
-        </Symfoni>
-      </header>
-    </div>
+      <Symfoni autoInit={true} >
+          <Header/>
+          <ToastContainer />
+          <Switch>
+              <Route path={PAGES.admin.registerEstate} strict>
+                  <RegisterEstate/>
+              </Route>
+
+              <Route path={PAGES.signup} strict>
+                  <UserRegister/>
+              </Route>
+
+              <Route path="/" strict>
+                  <Greeter/>
+              </Route>
+          </Switch>
+      </Symfoni>
   );
 }
 
