@@ -9,8 +9,9 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "hardhat/console.sol";
 import "./User.sol";
+import "./validations.sol";
 
-    struct EstatePlace {
+struct EstatePlace {
     string street;
     string number;
     string city;
@@ -32,6 +33,7 @@ struct Estate {
 
 contract RealEstateToken is Initializable, ERC721Upgradeable, ERC721EnumerableUpgradeable, ERC721URIStorageUpgradeable, AccessControlUpgradeable {
     using CountersUpgradeable for CountersUpgradeable.Counter;
+    using Validations for *;
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -86,7 +88,13 @@ contract RealEstateToken is Initializable, ERC721Upgradeable, ERC721EnumerableUp
     }
 
     function validateEstate(Estate memory estate) private {
+        EstatePlace memory place = estate.place;
 
+        place.city.validateNotEmpty("City is empty");
+        place.street.validateNotEmpty("Street is empty");
+        place.number.validateNotEmpty("Number is empty");
+        place.country.validateNotEmpty("Country is empty");
+        place.region.validateNotEmpty("Region is empty");
     }
 
     // The following functions are overrides required by Solidity.
