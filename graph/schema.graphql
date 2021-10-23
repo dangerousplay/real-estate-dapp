@@ -1,0 +1,38 @@
+
+enum EstateStatus {
+    OCCUPIED,
+    AVAILABLE
+}
+
+
+type EstatePlace @entity {
+  id: ID!
+  street: String!
+  number: String!
+  city: String!
+  country: String!
+  region: String!
+  neighbour: String!
+}
+
+type RealEstate @entity {
+    id: ID!
+    place: EstatePlace!
+    photos: [String!]!
+    isTrading: Boolean
+    status: EstateStatus!
+    price: BigInt
+}
+
+enum UserStatus {
+    REGISTERED, PENDING, DENIED
+}
+
+type User @entity {
+  id: ID!
+  name: String!
+  cellphone: String!
+  email: String!
+  status: UserStatus!
+}
+

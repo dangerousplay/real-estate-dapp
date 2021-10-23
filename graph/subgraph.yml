@@ -1,0 +1,54 @@
+specVersion: 0.0.2
+description: Real Estate Agency
+repository: https://github.com/PureStake/moonlotto-subgraph
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: RealEstate
+    network: mainnet
+    source:
+      address: '0xd3C83822F8ee4C2B487E887537f6789F0060e8F4'
+      abi: RealEstate
+      startBlock: 3
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./mapping/mappings.ts
+      entities:
+        - EstatePlace
+        - RealEstate
+      abis:
+        - name: RealEstate
+          file: ../artifacts/contracts/RealEstate.sol/RealEstateToken.json
+      eventHandlers:
+        - event: EstateRegistered(indexed address,indexed uint256,((string,string,string,string,string,string),uint8,bool,uint256,string[]))
+          handler: handleEstateRegistered
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleEstateTransfer
+
+  - kind: ethereum/contract
+    name: UserManagement
+    network: mainnet
+    source:
+      address: '0xABfE99d4cF78E5E2823bccf02a6687face5D99cB'
+      abi: UserManagement
+      startBlock: 3
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./mapping/user.ts
+      entities:
+        - User
+      abis:
+        - name: UserManagement
+          file: ../artifacts/contracts/User.sol/UserManagement.json
+      eventHandlers:
+        - event: UserRegistered(indexed address,(string,string,string))
+          handler: handleUserRegistered
+        - event: UserApproved(indexed address)
+          handler: handleUserApproved
+        - event: UserDenied(indexed address)
+          handler: handleUserDenied
