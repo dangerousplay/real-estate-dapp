@@ -1,7 +1,6 @@
 import React from 'react';
 import './App.css';
 import { Symfoni } from "./hardhat/SymfoniContext";
-import { Greeter } from './components/Greeter';
 import {Header} from "./container/Header";
 import {Route, Switch} from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -30,7 +29,6 @@ function App() {
               </Route>
 
               <Route path="/" strict>
-                  <Greeter/>
               </Route>
           </Switch>
       </Symfoni>
