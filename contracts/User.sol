@@ -1,8 +1,11 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "./validations.sol";
 
 
 struct User {
@@ -17,6 +20,7 @@ enum  UserStatus {
 
 
 contract UserManagement is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
+    using Validations for *;
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant APPROVER_ROLE = keccak256("APPROVER_ROLE");
@@ -26,10 +30,9 @@ contract UserManagement is Initializable, AccessControlUpgradeable, UUPSUpgradea
     mapping (address => User) private registered;
     mapping (address => User) private pending;
 
-    error ValidationFailed(string message);
-    error UserAlreadyExist(UserStatus status);
     event UserRegistered(address indexed userAddress, User user);
-    event UserDenied(address indexed userAddress, User user);
+    event UserApproved(address indexed userAddress);
+    event UserDenied(address indexed userAddress);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -46,10 +49,10 @@ contract UserManagement is Initializable, AccessControlUpgradeable, UUPSUpgradea
     }
 
     function _getUserStatus(address user) private view returns (UserStatus) {
-        if (bytes(registered[user].name).length > 0)
+        if (registered[user].name.isNotEmpty())
             return UserStatus.REGISTERED;
 
-        if (bytes(pending[user].name).length > 0)
+        if (pending[user].name.isNotEmpty())
             return UserStatus.PENDING;
 
         return UserStatus.NOT_FOUND;
@@ -62,21 +65,17 @@ contract UserManagement is Initializable, AccessControlUpgradeable, UUPSUpgradea
     function register(User memory user) public {
         UserStatus userStatus = _getUserStatus(msg.sender);
 
-        if(userStatus != UserStatus.NOT_FOUND)
-          revert UserAlreadyExist(userStatus);
+        require(userStatus == UserStatus.NOT_FOUND, "User already exists");
 
         pending[msg.sender] = user;
+
+        emit UserRegistered(msg.sender, user);
     }
 
     function validateUser(User memory user) private pure {
-        if (bytes(user.name).length < 1)
-           revert ValidationFailed("User name is empty");
-
-        if (bytes(user.cellphone).length < 1)
-           revert ValidationFailed("User cellphone is empty");
-
-        if (bytes(user.email).length < 1)
-            revert ValidationFailed("User email is empty");
+        user.name.validateNotEmpty("User name is empty");
+        user.cellphone.validateNotEmpty("User cellphone is empty");
+        user.email.validateNotEmpty("User email is empty");
     }
 
     function approve(address userAddress) public onlyRole(APPROVER_ROLE) {
@@ -84,6 +83,8 @@ contract UserManagement is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         delete pending[userAddress];
         registered[userAddress] = userToApprove;
+
+        emit UserApproved(userAddress);
     }
 
     function denyUser(address userAddress) public onlyRole(APPROVER_ROLE) {
@@ -91,14 +92,14 @@ contract UserManagement is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         delete pending[userAddress];
 
-        emit UserDenied(userAddress, user);
+        emit UserDenied(userAddress);
     }
 
     function getUser(address userAddress, mapping (address => User) storage users)
     private view returns (User memory) {
         User memory user = users[userAddress];
 
-        require(bytes(user.name).length > 0, "User not found");
+        require(user.name.isEmpty(), "User not found");
 
         return user;
     }
