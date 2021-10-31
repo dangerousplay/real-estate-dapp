@@ -21,7 +21,9 @@ export function handleUserRegistered(event: UserRegistered): void {
 }
 
 export function handleUserDenied(event: UserDenied): void {
-    const user = User.load(event.address.toHex());
+    const eventData = event.params;
+
+    const user = User.load(eventData.userAddress.toHex());
 
     if(!user) {
         return
@@ -33,7 +35,9 @@ export function handleUserDenied(event: UserDenied): void {
 }
 
 export function handleUserApproved(event: UserApproved): void {
-    const user = User.load(event.address.toHex());
+    const eventData = event.params;
+
+    const user = User.load(eventData.userAddress.toHex());
 
     if(!user) {
         return
