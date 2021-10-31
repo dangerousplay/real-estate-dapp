@@ -15,7 +15,7 @@ const onFormSubmit = (contract: UserManagement) => {
         contract.register(formData)
             .then(tx => tx.wait())
             .then(r => toast('Registro enviado', { type: "success", theme: 'dark' }))
-            .catch(e => toast('Falha no registro', { type: "error", theme: 'dark'}))
+            .catch(e => toast(`Falha no registro: ${JSON.stringify(e)}`, { type: "error", theme: 'dark'}))
     }
 }
 

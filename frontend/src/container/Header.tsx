@@ -2,10 +2,14 @@ import React from "react"
 import {Nav, Navbar, NavDropdown} from "react-bootstrap";
 import {PAGES} from "../pages";
 import {LinkContainer} from 'react-router-bootstrap'
+import {useSelector} from "react-redux";
+import {RootState} from "../store";
 
 
 
 export const Header: React.FC = () => {
+    const user = useSelector((state: RootState) => state.user)
+
    return (
      <header>
          <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
@@ -20,14 +24,19 @@ export const Header: React.FC = () => {
                      </LinkContainer>
                  </Nav>
                  <Nav>
+                     {user.isAdmin &&
                      <NavDropdown title="Admin" id="admin-dropdown">
                          <LinkContainer to={PAGES.admin.registerEstate}>
                              <NavDropdown.Item>Registrar imóvel</NavDropdown.Item>
                          </LinkContainer>
-                     </NavDropdown>
+                         <LinkContainer to={PAGES.admin.userApproval}>
+                             <NavDropdown.Item>Aprovar usuários</NavDropdown.Item>
+                         </LinkContainer>
+                     </NavDropdown> }
+                     { !user.isRegistered &&
                      <LinkContainer to={PAGES.signup}>
                         <Nav.Link>Registrar</Nav.Link>
-                     </LinkContainer>
+                     </LinkContainer> }
                  </Nav>
              </Navbar.Collapse>
          </Navbar>
