@@ -4,8 +4,8 @@ pragma solidity ^0.8.7;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./validations.sol";
+import "hardhat/console.sol";
 
 
 struct User {
@@ -19,33 +19,28 @@ enum  UserStatus {
 }
 
 
-contract UserManagement is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
+contract UserManagement is Initializable, AccessControlUpgradeable {
     using Validations for *;
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     bytes32 public constant APPROVER_ROLE = keccak256("APPROVER_ROLE");
 
-    User private DEPLOYER_USER = User("DEPLOYER", "DEPLOYER", "DEPLOYER");
-
     mapping (address => User) private registered;
     mapping (address => User) private pending;
 
     event UserRegistered(address indexed userAddress, User user);
-    event UserApproved(address indexed userAddress);
-    event UserDenied(address indexed userAddress);
+    event UserApproved(address indexed userAddress, address indexed sender);
+    event UserDenied(address indexed userAddress, address indexed sender);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
     function initialize() initializer public {
         __AccessControl_init();
-        __UUPSUpgradeable_init();
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(UPGRADER_ROLE, msg.sender);
         _setupRole(APPROVER_ROLE, msg.sender);
-
-        registered[msg.sender] = DEPLOYER_USER;
     }
 
     function _getUserStatus(address user) private view returns (UserStatus) {
@@ -60,6 +55,10 @@ contract UserManagement is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     function getUserStatus(address user) external view returns (UserStatus) {
         return _getUserStatus(user);
+    }
+
+    function isAdmin() public view returns(bool) {
+        return hasRole(APPROVER_ROLE, msg.sender);
     }
 
     function register(User memory user) public {
@@ -84,7 +83,7 @@ contract UserManagement is Initializable, AccessControlUpgradeable, UUPSUpgradea
         delete pending[userAddress];
         registered[userAddress] = userToApprove;
 
-        emit UserApproved(userAddress);
+        emit UserApproved(userAddress, msg.sender);
     }
 
     function denyUser(address userAddress) public onlyRole(APPROVER_ROLE) {
@@ -92,14 +91,14 @@ contract UserManagement is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         delete pending[userAddress];
 
-        emit UserDenied(userAddress);
+        emit UserDenied(userAddress, msg.sender);
     }
 
     function getUser(address userAddress, mapping (address => User) storage users)
     private view returns (User memory) {
         User memory user = users[userAddress];
 
-        require(user.name.isEmpty(), "User not found");
+        require(user.name.isNotEmpty(), "User not found");
 
         return user;
     }
@@ -109,10 +108,4 @@ contract UserManagement is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         return registered[user];
     }
-
-    function _authorizeUpgrade(address newImplementation)
-    internal
-    onlyRole(UPGRADER_ROLE)
-    override
-    {}
 }
