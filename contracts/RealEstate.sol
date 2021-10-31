@@ -26,6 +26,8 @@ struct Estate {
     EstatePlace place;
     EstateStatus status;
     bool isTrading;
+    bool isAcceptingEstate;
+    bool ownerIsHolder;
     uint256 price;
     string[] photos;
 }
@@ -58,7 +60,7 @@ contract RealEstateToken is Initializable, ERC721Upgradeable, ERC721EnumerableUp
 
         userManagement = UserManagement(userManagementAddress);
 
-        console.log("MSG SENDER %s", msg.sender);
+        console.log("RealEstateToken MSG SENDER %s", msg.sender);
     }
 
     function safeMint(address to, Estate memory estate) public onlyRole(MINTER_ROLE) returns(uint256) {
