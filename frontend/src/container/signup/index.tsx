@@ -1,12 +1,12 @@
-import React, {useContext, useState} from "react";
-import {Button, Card, Col, Form, InputGroup} from "react-bootstrap";
+import React, {useContext} from "react";
+import {Button, Card, Form} from "react-bootstrap";
 import {UserManagementContext} from "../../hardhat/SymfoniContext";
 
 import {toast} from "react-toastify";
 import {UserManagement} from "../../hardhat/typechain/UserManagement";
-import { useForm } from "react-hook-form";
+import {useForm} from "react-hook-form";
 
-
+const EMAIL_REGEX = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
 
 const onFormSubmit = (contract: UserManagement) => {
     return (formData: any) => {
@@ -35,23 +35,34 @@ const UserRegister: React.FC = () => {
                         <Card.Body>
                             <Form.Group>
                                 <Form.Label>Nome</Form.Label>
-                                <Form.Control type="text" placeholder="Joao"
-                                              {...register("name", { required: true })}
+                                <Form.Control type="text" placeholder="Joao" isInvalid={errors.name}
+                                              {...register("name", { required: true, minLength: 3 })}
                                 />
+                                <p style={{color: "red"}}>
+                                {errors.name && "Nome deve ter mais de 3 caracteres"}
+                                </p>
                             </Form.Group>
 
                             <Form.Group>
                                 <Form.Label>Email</Form.Label>
-                                <Form.Control type="email" placeholder="example@com.br"
-                                              {...register("email", { required: true })}
+                                <Form.Control type="email" placeholder="example@com.br" isInvalid={errors.email}
+                                              {...register("email", { required: true, pattern: EMAIL_REGEX })}
                                 />
+                                <p style={{color: "red"}}>
+                                {errors.email && "Email inválido"}
+                                </p>
                             </Form.Group>
 
                             <Form.Group>
                                 <Form.Label>Telefone</Form.Label>
-                                <Form.Control type="text" placeholder="51988888888"
+                                <Form.Control type="text" placeholder="51988888888" isInvalid={errors.cellphone}
                                               {...register("cellphone", { required: true, pattern: /[0-9]{11}/ })}
                                 />
+                                <p style={{color: "red"}}>
+                                    {errors.cellphone && "Telefone inválido. Deve seguir o formato 51988888888"}
+                                </p>
+
+
                             </Form.Group>
                         </Card.Body>
                     </Card>
