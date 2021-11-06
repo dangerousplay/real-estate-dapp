@@ -1,4 +1,4 @@
-import React, {useContext, useState} from "react";
+import React, {useContext, useLayoutEffect, useState} from "react";
 import {Button, Card, Col, Form, InputGroup} from "react-bootstrap";
 import {CountryDropdown, RegionDropdown} from "react-country-region-selector";
 import {RealEstateTokenContext} from "../../hardhat/SymfoniContext";
@@ -7,18 +7,22 @@ import AsyncSelect from 'react-select/async';
 
 import {toast} from "react-toastify";
 import {urqlClient} from "../../graphq";
+import {ImageUpload} from "../../components/image/ImageUpload";
+import {ipfsUrl} from "../../configuration";
 
-const onFormSubmit = async (e: any, contract: RealEstateToken) => {
+const cc = require('cryptocompare')
+
+
+const onFormSubmit = async (e: any, photos: string[], contract: RealEstateToken) => {
     e.preventDefault()
 
     const formData = new FormData(e.target),
         formDataObj = Object.fromEntries(formData.entries())
 
-    console.log(formDataObj)
-
     const {
         street, country, city,
         neighbour, region, ownerIsHolder,
+        isAcceptingEstate, owner,
         estateStatus,
         isTrading,
         estatePrice,
@@ -39,20 +43,23 @@ const onFormSubmit = async (e: any, contract: RealEstateToken) => {
         isTrading: isTrading || false,
         price: estatePrice,
         ownerIsHolder,
+        isAcceptingEstate: isAcceptingEstate || false,
         place,
-        photos: []
+        photos
     }
 
-    console.log(estate)
+    try {
+        const tx = await contract.safeMint(owner as string, estate as any)
+        await tx.wait()
 
-    const tx = await contract.safeMint(formDataObj.ownerAddress as string, estate as any)
-    await tx.wait()
-
-    toast('Imóvel registrado', { type: "success", theme: 'dark' })
+        toast('Imóvel registrado', { type: "success", theme: 'dark' })
+    } catch (e) {
+        toast('Falha no registro do imóvel: ' + JSON.stringify(e), { type: "error", theme: 'dark'})
+    }
 }
 
 
-function EstateInput() {
+function EstateInput(props: {setPhotos?: (photos: string[]) => void }) {
     const QUERY = `
       query users($name: String) {
         users(first: 10, where: { name_contains: $name }) {
@@ -67,10 +74,18 @@ function EstateInput() {
             .query(QUERY, { name })
             .toPromise();
 
-        console.log(users);
-
         return users.data.users
     };
+
+    const [ethUSDPrice, setEthUSDPrice] = useState(0)
+    const [realEstatePrice, setRealEstatePrice] = useState(0)
+
+    useLayoutEffect(() => {
+        cc.price('ETH', ['USD'])
+            .then((prices: any) => {
+                setEthUSDPrice(prices['USD'])
+            }).catch(console.error)
+    })
 
     return <Card>
         <Card.Header>Imóvel</Card.Header>
@@ -88,7 +103,12 @@ function EstateInput() {
 
             <Form.Group>
                 <Form.Label>Proprietário</Form.Label>
-                <AsyncSelect loadOptions={searchUsers}/>
+                <AsyncSelect loadOptions={searchUsers} name="owner"/>
+            </Form.Group>
+
+            <Form.Group>
+                <Form.Label>Fotos</Form.Label>
+                <ImageUpload ipfsUrl={ipfsUrl} inputName="photos" onImagesChanged={props.setPhotos}/>
             </Form.Group>
 
             <Form.Group>
@@ -97,11 +117,15 @@ function EstateInput() {
                     <InputGroup.Prepend>
                         <InputGroup.Text>$</InputGroup.Text>
                     </InputGroup.Prepend>
-                    <Form.Control type="number" required name="estatePrice"/>
+                    <Form.Control type="number" required name="estatePrice"
+                                  onChange={e => setRealEstatePrice(parseFloat(e.target.value))}/>
                     <Form.Control.Feedback type="invalid">
                         Informe um valor
                     </Form.Control.Feedback>
                 </InputGroup>
+                <p>
+                    Valor em dollar: { ethUSDPrice * (realEstatePrice > -1 ? realEstatePrice : 0) }
+                </p>
             </Form.Group>
         </Card.Body>
     </Card>;
@@ -137,24 +161,24 @@ function EstatePlaceInput() {
 
                 <Form.Group as={Col}>
                     <Form.Label>Cidade</Form.Label>
-                    <Form.Control type="text" placeholder="Cidade" name="city"/>
+                    <Form.Control type="text" placeholder="Cidade" name="city" required/>
                 </Form.Group>
 
                 <Form.Group as={Col}>
                     <Form.Label>Bairro</Form.Label>
-                    <Form.Control type="text" placeholder="Bairro" name="neighbour"/>
+                    <Form.Control type="text" placeholder="Bairro" name="neighbour" required/>
                 </Form.Group>
             </Form.Row>
 
             <Form.Row>
                 <Form.Group as={Col}>
                     <Form.Label>Rua</Form.Label>
-                    <Form.Control type="text" placeholder="Av. Barreto" name="street"/>
+                    <Form.Control type="text" placeholder="Av. Barreto" name="street" required/>
                 </Form.Group>
 
                 <Form.Group as={Col}>
                     <Form.Label>Número</Form.Label>
-                    <Form.Control type="text" placeholder="583" name="placeNumber"/>
+                    <Form.Control type="text" placeholder="583" name="placeNumber" required/>
                 </Form.Group>
             </Form.Row>
         </Card.Body>
@@ -164,23 +188,29 @@ function EstatePlaceInput() {
 
 const Register: React.FC = () => {
     const realEstateContract = useContext(RealEstateTokenContext)
+    const [estatePhotos, setEstatePhotos] = useState<string[]>([])
 
     return (
     <Card>
         <Card.Header>Registrar imóvel</Card.Header>
         <Card.Body>
 
-            <Form onSubmit={e => onFormSubmit(e, realEstateContract.instance!)}>
+            <Form onSubmit={e => onFormSubmit(e, estatePhotos, realEstateContract.instance!)}>
                 <EstatePlaceInput/>
 
                 <br/>
 
-                <EstateInput/>
+                <EstateInput setPhotos={setEstatePhotos} />
 
                 <br/>
 
                 <Form.Group>
-                    <Form.Check type="checkbox" label="Proprietário aceita negociação (outro imóvel)"
+                    <Form.Check type="checkbox" label="Proprietário aceita negociação de outro imóvel?"
+                                name="isAcceptingEstate" value="true"/>
+                </Form.Group>
+
+                <Form.Group>
+                    <Form.Check type="checkbox" label="Imóvel está a venda?"
                                 name="isTrading" value="true"/>
                 </Form.Group>
 
