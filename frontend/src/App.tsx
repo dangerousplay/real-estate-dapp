@@ -19,6 +19,7 @@ import {store} from './store';
 import {UserProvider} from "./user";
 import {urqlClient} from "./graphq";
 import ManagementRouter from "./container/management/ManagementRouter";
+import MarketRouter from "./container/market/MarketRouter";
 
 
 
@@ -31,16 +32,19 @@ function App() {
           <UserProvider/>
           <Header/>
           <ToastContainer />
-          <Switch>
-              <Route path={PAGES.signup} strict>
-                  <UserRegister/>
-              </Route>
+              <section className="main-content">
+              <Switch>
+                  <Route path={PAGES.signup} strict>
+                      <UserRegister/>
+                  </Route>
 
-              <ManagementRouter/>
+                  <Route path={PAGES.admin.root} component={ManagementRouter}/>
+                  <Route path={PAGES.estate.root} component={MarketRouter}/>
 
-              <Route path="/" strict>
-              </Route>
-          </Switch>
+                  <Route path="/" strict>
+                  </Route>
+              </Switch>
+              </section>
           </ReduxProvider>
           </UrqProvider>
       </Symfoni>

@@ -22,6 +22,9 @@ type RealEstate @entity {
     isTrading: Boolean
     status: EstateStatus!
     price: BigInt
+    isAcceptingEstate: Boolean
+    ownerIsHolder: Boolean
+    owner: User
 }
 
 enum UserStatus {
@@ -34,5 +37,6 @@ type User @entity {
   cellphone: String!
   email: String!
   status: UserStatus!
+  realEstates: [RealEstate!]! @derivedFrom(field: "owner")
 }
 
