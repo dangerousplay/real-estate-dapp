@@ -5,16 +5,20 @@ import {UserManagementContext} from "../../hardhat/SymfoniContext";
 import {toast} from "react-toastify";
 import {UserManagement} from "../../hardhat/typechain/UserManagement";
 import {useForm} from "react-hook-form";
+import {useHistory} from "react-router-dom";
 
 const EMAIL_REGEX = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
 
-const onFormSubmit = (contract: UserManagement) => {
+const onFormSubmit = (contract: UserManagement, history: any) => {
     return (formData: any) => {
         console.log(formData)
 
         contract.register(formData)
             .then(tx => tx.wait())
-            .then(r => toast('Registro enviado', { type: "success", theme: 'dark' }))
+            .then(r => {
+                toast('Registro enviado', { type: "success", theme: 'dark' })
+                history.push("/")
+            })
             .catch(e => toast(`Falha no registro: ${JSON.stringify(e)}`, { type: "error", theme: 'dark'}))
     }
 }
@@ -23,13 +27,14 @@ const onFormSubmit = (contract: UserManagement) => {
 const UserRegister: React.FC = () => {
     const { register, handleSubmit, watch, formState: { errors } } = useForm();
     const userManagement = useContext(UserManagementContext)
+    const history = useHistory();
 
     return (
         <Card>
             <Card.Header>Registrar</Card.Header>
             <Card.Body>
 
-                <Form onSubmit={handleSubmit(onFormSubmit(userManagement.instance!))}>
+                <Form onSubmit={handleSubmit(onFormSubmit(userManagement.instance!, history))}>
                     <Card>
                         <Card.Header>Dados de cadastro</Card.Header>
                         <Card.Body>
