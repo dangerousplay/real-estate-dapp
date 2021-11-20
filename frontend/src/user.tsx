@@ -46,7 +46,7 @@ export const userSlice = createSlice({
 async function fetchUserData(userContext: UserManagement, dispatch: any, address: string): Promise<void> {
     let user: UserState = {...initialState}
 
-    const isAdmin = await userContext.isAdmin()
+    const isAdmin = await userContext.isAdmin(address)
 
     const userStatus = await userContext?.getUserStatus(address)
 

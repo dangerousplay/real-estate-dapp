@@ -9,6 +9,7 @@ export const PAGES = {
     },
     estate: {
       root: "/estate",
+      view: "/estate/view",
       market: "/estate/market"
     },
     signup: "/signup"
