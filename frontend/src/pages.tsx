@@ -6,7 +6,8 @@ export const PAGES = {
         root: '/admin',
         registerEstate: '/admin/estate/register',
         userApproval: '/admin/user/approval',
-        editRealEstate: '/admin/estate/edit'
+        editRealEstate: '/admin/estate/edit',
+        dashboard: '/admin/dashboard'
     },
     estate: {
       root: "/estate",
