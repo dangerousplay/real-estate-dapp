@@ -32,6 +32,9 @@ export const Header: React.FC = () => {
                          <LinkContainer to={PAGES.admin.userApproval}>
                              <NavDropdown.Item>Aprovar usuários</NavDropdown.Item>
                          </LinkContainer>
+                         <LinkContainer to={PAGES.admin.dashboard}>
+                             <NavDropdown.Item>Dashboard</NavDropdown.Item>
+                         </LinkContainer>
                      </NavDropdown> }
                      { !user.isRegistered &&
                      <LinkContainer to={PAGES.signup}>

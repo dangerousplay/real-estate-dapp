@@ -5,6 +5,7 @@ import React from "react";
 import {PAGES} from "../../pages";
 import RegisterEstate from "./RegisterEstate";
 import UserApproval from "./UserApproval";
+import Dashboard from "./Dashboard";
 
 
 const Routes: React.FC = () => {
@@ -23,6 +24,8 @@ const Routes: React.FC = () => {
             <Route path={PAGES.admin.editRealEstate + '/:estateId'} strict>
                 <RegisterEstate/>
             </Route>
+
+            <Route path={PAGES.admin.dashboard} strict component={Dashboard}/>
 
             <Route path={PAGES.admin.userApproval} strict>
                 <UserApproval/>

@@ -20,6 +20,7 @@ import {UserProvider} from "./user";
 import {urqlClient} from "./graphq";
 import ManagementRouter from "./container/management/ManagementRouter";
 import MarketRouter from "./container/market/MarketRouter";
+import Notifications from "./container/Notifications";
 
 
 
@@ -31,6 +32,7 @@ function App() {
           <ReduxProvider store={store}>
           <UserProvider/>
           <Header/>
+          <Notifications/>
           <ToastContainer />
               <section className="main-content">
               <Switch>
