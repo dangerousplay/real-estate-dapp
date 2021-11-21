@@ -7,6 +7,11 @@ import {CountryDropdown, RegionDropdown} from "react-country-region-selector";
 import "./EstateList.css"
 import {urqlClient} from "../../../graphq";
 import AsyncSelect from "react-select/async";
+import {useSelector} from "react-redux";
+import {RootState} from "../../../store";
+import {calculateOutdatedTime} from "../../../utils/RealEstate";
+const {fromWei} = require("web3-utils");
+
 
 const RealEstateQuery = (filters: any) => `
   query {
@@ -74,6 +79,8 @@ const JSONtoString = (json: any) => {
 
 function FilterRealEstate(props: { onFilterChange: (filters: any) => void }) {
     const [filters, setFilters] = useState({})
+
+    const user = useSelector((root: RootState) => root.user);
 
     const [placeQueryFilters, setPlaceQueryFilters] = useState({})
     const [country, setCountry] = useState("Brazil");
@@ -168,6 +175,17 @@ function FilterRealEstate(props: { onFilterChange: (filters: any) => void }) {
                 <p> Valor máximo do imóvel </p>
                 <input type="number" min={0} onChange={setEstateFilter("price_lte")}/>
             </div>
+                { user.isAdmin &&
+                    <div>
+                        <input type="checkbox" value={1} onChange={e => {
+                            const outdatedDate = calculateOutdatedTime()
+
+                            if(e.target.value == "1") setEstateFilter("lastModified_lte")(outdatedDate)
+                        }}/>
+                        Imóveis desatualizados
+                    </div>
+                }
+
             </Card.Body>
 
             <Card.Header>
@@ -239,9 +257,10 @@ function EstateView(data: any, history: any) {
                         Rua: {e.place.street} <br/>
                         Número: {e.place.number}
                         <br/>
-                        <strong>Valor em Ether: {e.price}</strong>
+                        <strong>Valor em Ether: {fromWei(e.price, 'ether')}</strong>
                     </Card.Text>
-                    <Button onClick={_ => history.push(PAGES.estate.root + "/" + e.id)}>
+
+                    <Button onClick={_ => history.push(PAGES.estate.view + "/" + e.id)}>
                         Visualizar imóvel
                     </Button>
                 </Card.Body>
