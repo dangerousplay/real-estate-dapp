@@ -29,6 +29,8 @@ struct Estate {
     bool isAcceptingEstate;
     bool ownerIsHolder;
     uint256 price;
+    address agencyOwner;
+    bool isFinanced;
     string[] photos;
 }
 
@@ -43,8 +45,11 @@ contract RealEstateToken is Initializable, ERC721Upgradeable, ERC721EnumerableUp
     UserManagement private userManagement;
 
     mapping (uint256 => Estate) estates;
+    mapping (uint256 => address[]) interestedIn;
 
     event EstateRegistered(address indexed owner, uint256 indexed tokenId, Estate estate);
+    event EstateChanged(uint256 indexed tokenId, Estate estate);
+    event InterestRegistered(uint256 indexed tokenId, address indexed user);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -63,12 +68,16 @@ contract RealEstateToken is Initializable, ERC721Upgradeable, ERC721EnumerableUp
         console.log("RealEstateToken MSG SENDER %s", msg.sender);
     }
 
+    function userRegistered(address user) private {
+        UserStatus owner = userManagement.getUserStatus(user);
+
+        require(owner == UserStatus.REGISTERED, "User not registered");
+    }
+
     function safeMint(address to, Estate memory estate) public onlyRole(MINTER_ROLE) returns(uint256) {
         uint256 id = _tokenIdCounter.current();
 
-        UserStatus owner = userManagement.getUserStatus(to);
-
-        require(owner == UserStatus.REGISTERED, "User not registered");
+        userRegistered(to);
 
         validateEstate(estate);
 
@@ -81,6 +90,46 @@ contract RealEstateToken is Initializable, ERC721Upgradeable, ERC721EnumerableUp
         _tokenIdCounter.increment();
 
         return id;
+    }
+
+    function updateRealEstateMetadata(uint256 tokenId, Estate memory estateChanged) public {
+        require(_exists(tokenId), "information: Token ID not found");
+
+        Estate memory registeredEstate = estates[tokenId];
+
+        require(estateChanged.agencyOwner == registeredEstate.agencyOwner, "Agency owner can't be changed");
+
+        validateEstate(estateChanged);
+
+        estates[tokenId] = estateChanged;
+
+        emit EstateChanged(tokenId, estateChanged);
+    }
+
+    function registerInterest(uint256 tokenId) public {
+        require(_exists(tokenId), "registerInterest: Token ID not found");
+
+        userRegistered(msg.sender);
+
+        emit InterestRegistered(tokenId, msg.sender);
+    }
+
+    function buy(uint256 tokenId) public payable {
+        require(_exists(tokenId), "buy: Token ID not found");
+
+        Estate memory registeredEstate = estates[tokenId];
+
+        require(msg.value == registeredEstate.price, "Value is not the price");
+
+        address owner = ownerOf(tokenId);
+
+        require(owner != msg.sender, "Owner is the same");
+
+        (bool success, ) = owner.call{value: msg.value}("");
+
+        require(success, "Failed to send Ether");
+
+        _transfer(owner, msg.sender, tokenId);
     }
 
     function information(uint256 tokenId) public view returns(Estate memory) {
@@ -97,6 +146,8 @@ contract RealEstateToken is Initializable, ERC721Upgradeable, ERC721EnumerableUp
         place.number.validateNotEmpty("Number is empty");
         place.country.validateNotEmpty("Country is empty");
         place.region.validateNotEmpty("Region is empty");
+
+        require(userManagement.isAdmin(estate.agencyOwner), "Agency owner is not an admin");
     }
 
     // The following functions are overrides required by Solidity.

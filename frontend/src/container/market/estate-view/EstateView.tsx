@@ -45,7 +45,7 @@ const RealEstateQuery = `
 
 const RealEstateAuditQuery = `
 query($id: String) {
-    realEstateAudits(where: { realEstateId: $id}) {
+    realEstateAudits(where: { realEstateId: $id}, orderBy: blockNumber, orderDirection: desc) {
       id
       blockNumber
       causedBy

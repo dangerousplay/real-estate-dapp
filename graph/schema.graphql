@@ -23,6 +23,11 @@ type RealEstate @entity {
     status: EstateStatus!
     price: BigInt
     isAcceptingEstate: Boolean
+    registerDate: BigInt
+    lastModified: BigInt
+    agencyOwner: ID!
+    interestedIn: [User!]
+    isFinanced: Boolean
     ownerIsHolder: Boolean
     owner: User
 }
@@ -38,5 +43,29 @@ type User @entity {
   email: String!
   status: UserStatus!
   realEstates: [RealEstate!]! @derivedFrom(field: "owner")
+}
+
+enum UserAuditEvent {
+    APPROVED, DENIED, REGISTERED
+}
+
+type UserAudit @entity {
+    causedBy: String!
+    action: UserAuditEvent!
+    blockNumber: BigInt!
+    userId: ID!
+    id: ID!
+}
+
+enum RealEstateAuditEvent {
+    REGISTERED, CHANGED, SOLD, TRANSFERRED
+}
+
+type RealEstateAudit @entity {
+    causedBy: String!
+    action: RealEstateAuditEvent!
+    realEstateId: ID!
+    blockNumber: BigInt!
+    id: ID!
 }
 

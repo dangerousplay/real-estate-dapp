@@ -37,11 +37,12 @@ async function uploadImages(e: any, ipfsUrl: string,
 type ImageUploadProps = {
     ipfsUrl: string,
     onImagesChanged?: (f: string[]) => void,
+    defaultPhotos?: string[]
     inputName?: string
 };
 
-export const ImageUpload: React.FC<ImageUploadProps> = ({ ipfsUrl, onImagesChanged, inputName }) => {
-    const [images, setImages] = useState<string[]>([])
+export const ImageUpload: React.FC<ImageUploadProps> = ({ ipfsUrl, onImagesChanged, inputName, defaultPhotos }) => {
+    const [images, setImages] = useState<string[]>(defaultPhotos ?? [])
 
     const uploadMultipleFiles = async (e: any) => {
         await uploadImages(e, ipfsUrl, onImagesChanged, images, setImages);

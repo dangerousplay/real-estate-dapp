@@ -20,6 +20,10 @@ const Routes: React.FC = () => {
                 <RegisterEstate/>
             </Route>
 
+            <Route path={PAGES.admin.editRealEstate + '/:estateId'} strict>
+                <RegisterEstate/>
+            </Route>
+
             <Route path={PAGES.admin.userApproval} strict>
                 <UserApproval/>
             </Route>

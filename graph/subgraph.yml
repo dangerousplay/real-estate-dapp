@@ -23,10 +23,14 @@ dataSources:
         - name: RealEstate
           file: ../artifacts/contracts/RealEstate.sol/RealEstateToken.json
       eventHandlers:
-        - event: EstateRegistered(indexed address,indexed uint256,((string,string,string,string,string,string),uint8,bool,bool,bool,uint256,string[]))
-          handler: handleEstateRegistered
+        - event: EstateRegistered(indexed address,indexed uint256,((string,string,string,string,string,string),uint8,bool,bool,bool,uint256,address,bool,string[]))
+          handler: handleRealEstateRegistered
+        - event: EstateChanged(indexed uint256,((string,string,string,string,string,string),uint8,bool,bool,bool,uint256,address,bool,string[]))
+          handler: handleRealEstateChanged
         - event: Transfer(indexed address,indexed address,indexed uint256)
-          handler: handleEstateTransfer
+          handler: handleRealEstateTransfer
+        - event: InterestRegistered(indexed uint256,indexed address)
+          handler: handleInterestRegistered
 
   - kind: ethereum/contract
     name: UserManagement

@@ -57,8 +57,8 @@ contract UserManagement is Initializable, AccessControlUpgradeable {
         return _getUserStatus(user);
     }
 
-    function isAdmin() public view returns(bool) {
-        return hasRole(APPROVER_ROLE, msg.sender);
+    function isAdmin(address user) public view returns(bool) {
+        return hasRole(APPROVER_ROLE, user);
     }
 
     function register(User memory user) public {
