@@ -120,7 +120,7 @@ const onFormSubmit = async (e: any, photos: string[], contract: RealEstateToken,
 }
 
 
-function EstateInput(props: {setPhotos?: (photos: string[]) => void, realEstate?: any }) {
+function EstateInput(props: {setPhotos: (photos: string[]) => void, realEstate?: any }) {
     const USERS_QUERY = `
       query users($name: String) {
         users(first: 10, where: { name_contains: $name }) {
@@ -155,7 +155,9 @@ function EstateInput(props: {setPhotos?: (photos: string[]) => void, realEstate?
             .then((prices: any) => {
                 setEthUSDPrice(prices['USD'])
             }).catch(console.error)
-    })
+
+        props.setPhotos(realEstate?.photos)
+    }, [])
 
     const agencyOwner = realEstate?.agencyOwner ?? currentAddress;
 
